@@ -1,0 +1,22 @@
+[Unit]
+Description=MeshOps Event Runtime
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=__MESHOPS_USER__
+Group=__MESHOPS_USER__
+SupplementaryGroups=dialout
+WorkingDirectory=__MESHOPS_PROJECT_ROOT__
+Environment=PYTHONUNBUFFERED=1
+Environment=MESHOPS_CONFIG=__MESHOPS_PROJECT_ROOT__/config/meshops.yaml
+ExecStart=__MESHOPS_PROJECT_ROOT__/.venv/bin/python __MESHOPS_PROJECT_ROOT__/scripts/event_runtime.py
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+[project]
+name = "meshops"
+version = "0.1.0"
+description = "Self-hosted operations dashboard for Meshtastic deployments."
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [
+    { name = "Matrix Data Technology" }
+]
+
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "jinja2",
+    "apscheduler",
+    "requests",
+    "meshtastic",
+    "sqlalchemy",
+    "aiofiles",
+    "pyyaml",
+    "python-dotenv",
+    "PyQRCode==1.2.1"
+]

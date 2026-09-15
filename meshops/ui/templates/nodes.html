@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="card nodes-page">
+    <h2>📡 Mesh Nodes</h2>
+    <p class="nodes-summary" id="nodes-summary">Calculating current mesh activity.</p>
+
+    {% if nodes %}
+    <div class="nodes-controls">
+        <label for="node-age-filter">Show nodes heard in the last</label>
+        <select id="node-age-filter">
+            <option value="2">2 hours</option>
+            <option value="4" selected>4 hours</option>
+            <option value="8">8 hours</option>
+            <option value="24">24 hours</option>
+            <option value="0">All known nodes</option>
+        </select>
+    </div>
+
+    <div class="nodes-table-wrap">
+        <table class="nodes-table" id="nodes-table">
+            <thead>
+                <tr>
+                    <th aria-sort="none"><button type="button" data-sort-key="name">Name</button></th>
+                    <th aria-sort="none"><button type="button" data-sort-key="hardware">Hardware</button></th>
+                    <th aria-sort="none"><button type="button" data-sort-key="battery">Battery</button></th>
+                    <th aria-sort="none"><button type="button" data-sort-key="hops">Hops</button></th>
+                    <th aria-sort="none"><button type="button" data-sort-key="gps">GPS</button></th>
+                    <th aria-sort="none"><button type="button" data-sort-key="positionUpdated">Position Updated</button></th>
+                    <th aria-sort="descending"><button type="button" data-sort-key="lastHeard">Last Packet Received</button></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for node in nodes %}
+                <tr
+                    data-name="{{ node.name|lower }}"
+                    data-hardware="{{ node.hardware_name|lower }}"
+                    data-battery="{{ node.battery if node.battery is not none else -1 }}"
+                    data-hops="{{ node.hops if node.hops is not none else 999 }}"
+                    data-gps="{{ 1 if node.has_position else 0 }}"
+                    data-position-updated="{{ node.position_updated_at if node.position_updated_at is not none else 0 }}"
+                    data-last-heard="{{ node.last_heard if node.last_heard is not none else 0 }}"
+                >
+                    <td><strong>{{ node.name }}</strong></td>
+                    <td>{{ node.hardware_name }}</td>
+                    <td>{{ node.battery_text }}</td>
+                    <td>{{ node.hops_text }}</td>
+                    <td>{{ node.gps_text }}</td>
+                    <td>{{ node.position_age_text }}</td>
+                    <td>{{ node.last_heard_text }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No nodes are currently visible.</p>
+    {% endif %}
+</section>
+
+<p class="nodes-summary">Packet age updates only when this radio receives traffic from a node; it does not indicate when that node was last rebooted.</p>
+
+<script>
+(() => {
+    const table = document.querySelector("#nodes-table");
+    if (!table) return;
+
+    const body = table.tBodies[0];
+    const rows = Array.from(body.rows);
+    const filter = document.querySelector("#node-age-filter");
+    const summary = document.querySelector("#nodes-summary");
+    let sortKey = "lastHeard";
+    let ascending = false;
+
+    function compareRows(left, right) {
+        const leftValue = left.dataset[sortKey];
+        const rightValue = right.dataset[sortKey];
+        const isNumeric = ["battery", "hops", "gps", "positionUpdated", "lastHeard"].includes(sortKey);
+        const comparison = isNumeric
+            ? Number(leftValue) - Number(rightValue)
+            : leftValue.localeCompare(rightValue);
+
+        return ascending ? comparison : -comparison;
+    }
+
+    function applyAgeFilter() {
+        const hours = Number(filter.value);
+        const cutoff = Date.now() / 1000 - hours * 60 * 60;
+        let visible = 0;
+        let recentlyActive = 0;
+
+        rows.forEach((row) => {
+            const lastHeard = Number(row.dataset.lastHeard);
+            const isRecent = Boolean(lastHeard && lastHeard >= cutoff);
+            const isVisible = !hours || isRecent;
+            row.hidden = !isVisible;
+            if (isVisible) visible += 1;
+            if (isRecent) recentlyActive += 1;
+        });
+
+        summary.textContent = hours
+            ? `${recentlyActive} active node(s) shown of ${rows.length} known.`
+            : `${visible} known node(s) shown.`;
+    }
+
+    function sortRows() {
+        rows.sort(compareRows).forEach((row) => body.appendChild(row));
+    }
+
+    table.querySelectorAll("[data-sort-key]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const nextKey = button.dataset.sortKey;
+            ascending = nextKey === sortKey ? !ascending : true;
+            sortKey = nextKey;
+            table.querySelectorAll("th").forEach((header) => header.setAttribute("aria-sort", "none"));
+            button.closest("th").setAttribute("aria-sort", ascending ? "ascending" : "descending");
+            sortRows();
+        });
+    });
+
+    filter.addEventListener("change", applyAgeFilter);
+    sortRows();
+    applyAgeFilter();
+})();
+</script>
+
+{% endblock %}

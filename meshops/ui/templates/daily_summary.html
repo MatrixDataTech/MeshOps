@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <div class="card">
+        <h2>🌅 Daily Operational Summary</h2>
+
+        {% if sun %}
+        <dl>
+            <dt>Sunrise</dt>
+            <dd>☀️ {{ sun.sunrise.strftime("%-I:%M %p") }}</dd>
+
+            <dt>Sunset</dt>
+            <dd>🌇 {{ sun.sunset.strftime("%-I:%M %p") }}</dd>
+
+            <dt>Daylight</dt>
+            <dd>{{ sun.day_length_text }}</dd>
+        </dl>
+        {% else %}
+        <p>Sun times unavailable without a Home Node position.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>🌤 Conditions</h2>
+
+        {% if weather %}
+        <dl>
+            <dt>Current</dt>
+            <dd>{{ weather.temperature }} °F</dd>
+
+            <dt>Wind</dt>
+            <dd>{{ weather.wind_speed }} mph</dd>
+
+            <dt>Weather Updated</dt>
+            <dd>{{ weather.updated.strftime("%-I:%M %p") }}</dd>
+        </dl>
+        {% else %}
+        <p>No weather available.</p>
+        {% endif %}
+
+        {% if aqi %}
+        <dl>
+            <dt>AQI</dt>
+            <dd>{{ aqi.indicator }} {{ aqi.value }} {{ aqi.category }}</dd>
+
+            <dt>AQI Updated</dt>
+            <dd>{{ aqi.updated.strftime("%-I:%M %p") }}</dd>
+        </dl>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>📡 Operations</h2>
+
+        <dl>
+            <dt>Mesh</dt>
+            <dd>{{ status_by_key["mesh"].summary }}</dd>
+
+            <dt>Camp</dt>
+            <dd>{{ home_node.name if home_node else "No Home Node" }}</dd>
+
+            <dt>Team</dt>
+            <dd>{{ team|length }} nodes</dd>
+
+            <dt>Alerts</dt>
+            <dd>None</dd>
+        </dl>
+    </div>
+
+    <div class="card morning-settings-card">
+        <h2>📣 Morning Update</h2>
+        <p class="settings-note">Sent to the configured channel at the chosen local time.</p>
+
+        <form id="morning-update-form" class="morning-settings">
+            <label class="checkbox-label">
+                <input id="morning-enabled" type="checkbox" {% if morning_update.enabled %}checked{% endif %}>
+                Enable daily Morning Update
+            </label>
+
+            <label for="morning-time">Daily send time</label>
+            <input id="morning-time" type="time" value="{{ morning_update.time }}" required>
+
+            <label for="morning-events">Operational events (one per line)</label>
+            <textarea id="morning-events" rows="5" maxlength="3200" placeholder="Temple Burn: 8:00 PM">{{ morning_update.events|join('\n') }}</textarea>
+
+            <button type="submit">Save Morning Update</button>
+            <p id="morning-save-status" class="settings-status" role="status"></p>
+        </form>
+    </div>
+
+    <div class="card morning-preview-card">
+        <h2>📻 Morning Update Preview</h2>
+        <p class="settings-note">This is the message format that will be sent when channel messaging is enabled.</p>
+        <pre id="morning-report-preview" class="morning-preview">{{ morning_report }}</pre>
+    </div>
+
+</div>
+
+<script>
+(() => {
+    const form = document.querySelector("#morning-update-form");
+    if (!form) return;
+
+    const enabled = document.querySelector("#morning-enabled");
+    const time = document.querySelector("#morning-time");
+    const events = document.querySelector("#morning-events");
+    const status = document.querySelector("#morning-save-status");
+    const preview = document.querySelector("#morning-report-preview");
+    const originalReport = preview.textContent;
+
+    function eventLines() {
+        return events.value.split("\n").map((line) => line.trim()).filter(Boolean);
+    }
+
+    function updatePreview() {
+        const eventText = eventLines().join("; ") || "None";
+        preview.textContent = originalReport.replace(/^Events:.*$/m, `Events: ${eventText}`);
+    }
+
+    events.addEventListener("input", updatePreview);
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        status.textContent = "Saving…";
+
+        const response = await fetch("/api/morning-update", {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                enabled: enabled.checked,
+                time: time.value,
+                events: eventLines(),
+            }),
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+            status.textContent = payload.detail || "Unable to save Morning Update settings.";
+            return;
+        }
+
+        time.value = payload.settings.time;
+        status.textContent = "Saved. The running scheduler will use these settings.";
+        updatePreview();
+    });
+})();
+</script>
+
+{% endblock %}

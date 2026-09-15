@@ -1,0 +1,32 @@
+site:
+  name: MeshOps
+  location: Operations site
+  timezone: UTC
+server:
+  host: 127.0.0.1
+  port: 8000
+meshtastic:
+  device: auto
+  bot_channel: null
+mesh:
+  refresh_seconds: 60
+  active_node_hours: 4
+  map_node_hours: 8
+team:
+  name_prefix: ""
+weather:
+  provider: open-meteo
+  refresh_minutes: 15
+  source_node: ""
+  nws_user_agent: MeshOps/0.1 (https://github.com/MatrixDataTech/MeshOps)
+logging:
+  level: INFO
+aqi:
+  provider: open-meteo
+  refresh_minutes: 15
+morning_update:
+  enabled: false
+  time: 08:00
+  grace_minutes: 120
+  state_file: .meshops-state/morning-update.json
+  events: []

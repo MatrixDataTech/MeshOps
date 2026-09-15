@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+
+    <h2>🗺 Mesh Map</h2>
+
+    <p class="map-source">Map source: {{ map_source_label }}</p>
+    <p class="map-source">Showing positions updated within the last {{ map_node_hours }} hours.</p>
+    <p class="map-source">
+        BRC overlay: © Burning Man Project ·
+        <a href="https://innovate.burningman.org/" target="_blank" rel="noopener">participant dataset</a>
+    </p>
+
+    <div id="map"></div>
+
+</div>
+
+<script>
+
+const defaultCenter = {% if home_node %}[
+    {{ home_node.latitude }},
+    {{ home_node.longitude }}
+]{% else %}[
+    40.786,
+    -119.205
+]{% endif %};
+const map = L.map("map").setView(defaultCenter, 14);
+
+L.tileLayer(
+    {{ tile_url|tojson }},
+    {
+        maxZoom: 19,
+        attribution: {{ tile_attribution|tojson }}
+    }
+).addTo(map);
+
+const brcOverlay = L.layerGroup().addTo(map);
+const brcOverlayBaseUrl = "/static/maps/brc-2026/";
+
+const brcLayers = [
+    {
+        file: "city_blocks.geojson",
+        name: "City blocks",
+        style: { color: "#c7a34a", weight: 1, fillColor: "#e6ca78", fillOpacity: 0.14 }
+    },
+    {
+        file: "street_outlines.geojson",
+        name: "Street outline",
+        style: { color: "#8c6b32", weight: 2, fillOpacity: 0 }
+    },
+    {
+        file: "plazas.geojson",
+        name: "Plaza",
+        style: { color: "#915fa3", weight: 1, fillColor: "#c79ad1", fillOpacity: 0.45 }
+    },
+    {
+        file: "gate_road.geojson",
+        name: "Gate Road",
+        style: { color: "#a36821", weight: 3, opacity: 0.9 }
+    },
+    {
+        file: "dmz.geojson",
+        name: "Deep Playa Music Zone",
+        style: { color: "#9d4f91", weight: 1, fillColor: "#d894cd", fillOpacity: 0.2 }
+    },
+    {
+        file: "trash_fence.geojson",
+        name: "Trash Fence",
+        style: { color: "#9a5741", weight: 2, dashArray: "5 5", fillOpacity: 0 }
+    },
+    {
+        file: "toilets.geojson",
+        name: "Portable Toilets",
+        style: { color: "#357aa8", weight: 1, fillColor: "#6fb5df", fillOpacity: 0.75 },
+        point: true
+    }
+];
+
+function brcFeatureLabel(feature, fallback) {
+    const properties = feature.properties || {};
+    return properties.name || properties.NAME || fallback;
+}
+
+function addBrcLayer(definition, data) {
+    L.geoJSON(data, {
+        style: definition.style,
+        pointToLayer: definition.point
+            ? (feature, latlng) => L.circleMarker(latlng, { ...definition.style, radius: 5 })
+            : undefined,
+        onEachFeature: (feature, layer) => {
+            const label = brcFeatureLabel(feature, definition.name);
+            if (label) {
+                layer.bindPopup("<strong>" + label + "</strong>");
+            }
+        }
+    }).addTo(brcOverlay);
+}
+
+for (const definition of brcLayers) {
+    fetch(brcOverlayBaseUrl + definition.file)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(definition.file + ": " + response.status);
+            }
+            return response.json();
+        })
+        .then((data) => addBrcLayer(definition, data))
+        .catch((error) => console.warn("Unable to load BRC overlay layer.", error));
+}
+
+L.control.layers(
+    null,
+    { "Black Rock City 2026": brcOverlay },
+    { collapsed: false }
+).addTo(map);
+
+const markerGroups = new Map();
+
+function escapeNodeText(value) {
+    const element = document.createElement("span");
+    element.textContent = value;
+    return element.innerHTML;
+}
+
+function groupNodeMarker(latitude, longitude, details) {
+    const key = latitude.toFixed(4) + "," + longitude.toFixed(4);
+    let group = markerGroups.get(key);
+
+    if (!group) {
+        group = { latitude, longitude, popups: [] };
+        markerGroups.set(key, group);
+    }
+
+    group.popups.push(
+        `<strong>${escapeNodeText(details.name)}</strong><br>` +
+        `${escapeNodeText(details.hardware)}<br>` +
+        `Battery: ${escapeNodeText(details.battery)}<br>` +
+        `Last Packet: ${escapeNodeText(details.lastPacket)}<br>` +
+        `Position Updated: ${escapeNodeText(details.positionUpdated)}`
+    );
+}
+
+{% for node in map_nodes %}
+groupNodeMarker(
+    {{ node.latitude }},
+    {{ node.longitude }},
+    {
+        name: {{ node.name|tojson }},
+        hardware: {{ node.hardware_name|tojson }},
+        battery: {{ node.battery_text|tojson }},
+        lastPacket: {{ node.last_heard_text|tojson }},
+        positionUpdated: {{ node.position_age_text|tojson }}
+    }
+);
+{% endfor %}
+
+for (const group of markerGroups.values()) {
+    L.marker([group.latitude, group.longitude])
+        .addTo(map)
+        .bindPopup(group.popups.join("<hr>"));
+}
+
+</script>
+
+{% endblock %}

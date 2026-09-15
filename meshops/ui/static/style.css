@@ -1,0 +1,382 @@
+body {
+    margin: 0;
+    background: #1e1e1e;
+    color: #f0f0f0;
+    font-family: system-ui, sans-serif;
+}
+
+header {
+    background: #2b2b2b;
+    border-bottom: 1px solid #444;
+    padding: 14px 24px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+nav {
+    margin-top: 10px;
+}
+
+nav a {
+    color: #87cefa;
+    text-decoration: none;
+    margin-right: 18px;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+main {
+    padding: 24px;
+}
+
+/* Dashboard */
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 420px));
+    gap: 20px;
+    justify-content: start;
+}
+
+.card {
+    background: #2b2b2b;
+    border: 1px solid #3b3b3b;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,.25);
+}
+
+.card h2 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    color: #87cefa;
+}
+
+.channel-share-card {
+    text-align: center;
+}
+
+.channel-share-qr {
+    background: #fff;
+    border-radius: 6px;
+    display: block;
+    height: 260px;
+    margin: 0 auto 16px;
+    max-width: 100%;
+    padding: 10px;
+    width: 260px;
+}
+
+.channel-share-note {
+    color: #f0b35d;
+    font-size: .9rem;
+    margin-bottom: 0;
+}
+
+.channel-message-card {
+    max-width: 420px;
+}
+
+.channel-message-form {
+    display: grid;
+    gap: 10px;
+}
+
+.channel-message-form label {
+    color: #c8cdd2;
+    font-size: .9rem;
+}
+
+.channel-message-form textarea {
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 4px;
+    box-sizing: border-box;
+    color: #f0f0f0;
+    font: inherit;
+    padding: 8px;
+    resize: vertical;
+    width: 100%;
+}
+
+.channel-message-form button {
+    background: #3f7ea4;
+    border: 0;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    justify-self: start;
+    padding: 8px 12px;
+}
+
+.channel-message-form button:hover,
+.channel-message-form button:focus-visible {
+    background: #4a91bb;
+}
+
+/* Definition Lists */
+
+dl {
+    margin: 0;
+}
+
+dt {
+    color: #9aa0a6;
+    font-size: .85rem;
+    margin-top: 14px;
+}
+
+dt:first-child {
+    margin-top: 0;
+}
+
+dd {
+    margin: 4px 0 0 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Tables */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #444;
+    text-align: left;
+}
+
+th {
+    width: 180px;
+    background: #333;
+}
+
+tbody tr:nth-child(even) {
+    background: rgba(255,255,255,.03);
+}
+
+tbody tr:hover {
+    background: rgba(135,206,250,.08);
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+
+    main {
+        padding: 16px;
+    }
+
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+#map {
+
+    height: 700px;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+
+}
+.map-source {
+    color: #9aa0a6;
+    font-size: .9rem;
+    margin: -8px 0 14px;
+}
+
+/* Subsystem status */
+
+.status-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-top: 12px;
+}
+
+.status-item {
+    color: #c8cdd2;
+    font-size: .82rem;
+    white-space: nowrap;
+}
+
+.status-dot {
+    background: #80868b;
+    border-radius: 50%;
+    display: inline-block;
+    height: 8px;
+    margin-right: 5px;
+    width: 8px;
+}
+
+.status-healthy .status-dot {
+    background: #67c587;
+}
+
+.status-degraded .status-dot {
+    background: #f0b35d;
+}
+
+.status-unavailable .status-dot {
+    background: #cf6c6c;
+}
+
+.status-unknown .status-dot {
+    background: #8f9aa5;
+}
+
+/* Nodes page */
+
+.nodes-page {
+    max-width: 1100px;
+}
+
+.nodes-summary {
+    color: #9aa0a6;
+    margin: -6px 0 18px;
+}
+
+.nodes-table-wrap {
+    overflow-x: auto;
+}
+
+.nodes-table th {
+    width: auto;
+    white-space: nowrap;
+}
+
+.nodes-controls {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 18px;
+}
+
+.nodes-controls label {
+    color: #c8cdd2;
+    font-size: .9rem;
+}
+
+.nodes-controls select {
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #f0f0f0;
+    padding: 6px 8px;
+}
+
+.nodes-table th button {
+    background: transparent;
+    border: 0;
+    color: #f0f0f0;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    padding: 0;
+    text-align: left;
+}
+
+.nodes-table th button:hover,
+.nodes-table th button:focus-visible {
+    color: #87cefa;
+}
+
+.nodes-table th[aria-sort="ascending"] button::after {
+    content: " ▲";
+    font-size: .7rem;
+}
+
+.nodes-table th[aria-sort="descending"] button::after {
+    content: " ▼";
+    font-size: .7rem;
+}
+
+/* Morning Update settings */
+
+.morning-settings-card,
+.morning-preview-card {
+    max-width: 520px;
+}
+
+.settings-note {
+    color: #9aa0a6;
+    font-size: .9rem;
+    margin: -6px 0 18px;
+}
+
+.morning-settings {
+    display: grid;
+    gap: 10px;
+}
+
+.morning-settings label {
+    color: #c8cdd2;
+    font-size: .9rem;
+}
+
+.morning-settings .checkbox-label {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+}
+
+.morning-settings input[type="time"],
+.morning-settings textarea {
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 4px;
+    box-sizing: border-box;
+    color: #f0f0f0;
+    font: inherit;
+    padding: 8px;
+    width: 100%;
+}
+
+.morning-settings textarea {
+    resize: vertical;
+}
+
+.morning-settings button {
+    background: #3f7ea4;
+    border: 0;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    justify-self: start;
+    padding: 8px 12px;
+}
+
+.morning-settings button:hover,
+.morning-settings button:focus-visible {
+    background: #4a91bb;
+}
+
+.settings-status {
+    color: #9fd3ad;
+    font-size: .9rem;
+    margin: 0;
+    min-height: 1.2em;
+}
+
+.morning-preview {
+    color: #e0e5e9;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}

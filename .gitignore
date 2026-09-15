@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.venv/
+venv/
+
+# Environment
+.env
+config/meshops.yaml
+
+# Editors
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+*.sqlite3
+*.db
+*.csv
+
+# Cache
+.pytest_cache/
+.mypy_cache/
+.meshops-state/

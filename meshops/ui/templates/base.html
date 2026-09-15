@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8">
+
+<title>{{ title or (site ~ " · MeshOps") }}</title>
+
+<link rel="icon" href="/static/favicon.png">
+
+<link
+    rel="stylesheet"
+    href="/static/style.css">
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>📡 {{ site }} · MeshOps</h1>
+
+<nav>
+
+<a href="/">Dashboard</a>
+<a href="/nodes">Nodes</a>
+<a href="/map">Map</a>
+<a href="/daily-summary">Daily Summary</a>
+
+</nav>
+
+<div class="status-bar" aria-label="Subsystem status">
+{% for status in statuses %}
+    <span class="status-item status-{{ status.state }}" title="{{ status.detail }}">
+        <span class="status-dot" aria-hidden="true"></span>
+        {{ status.label }}: {{ status.summary }}
+    </span>
+{% endfor %}
+</div>
+
+</header>
+
+<main>
+
+{% block content %}
+{% endblock %}
+
+</main>
+
+</body>
+
+</html>

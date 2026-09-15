@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <div class="card">
+        <h2>📡 Local Node</h2>
+
+        <dl>
+            <dt>Status</dt>
+            <dd>
+                {% if connected %}
+                    🟢 Connected
+                {% else %}
+                    🔴 Disconnected
+                {% endif %}
+            </dd>
+
+            <dt>Name</dt>
+            <dd>{{ node.name }}</dd>
+
+            <dt>Hardware</dt>
+            <dd>{{ node.hardware_name }}</dd>
+
+            <dt>Battery</dt>
+            <dd>{{ node.battery_text }}</dd>
+
+            <dt>Voltage</dt>
+            <dd>{{ node.voltage_text }}</dd>
+        </dl>
+    </div>
+
+    <div class="card">
+        <h2>🌤 Weather</h2>
+
+        {% if weather %}
+
+        <dl>
+            <dt>Source</dt>
+            <dd>{{ weather_node.name }} via {{ weather.source }}</dd>
+
+            <dt>Temperature</dt>
+            <dd>{{ weather.temperature }} °F</dd>
+
+            <dt>Feels Like</dt>
+            <dd>{{ weather.feels_like }} °F</dd>
+
+            <dt>Humidity</dt>
+            <dd>{{ weather.humidity }}%</dd>
+
+            <dt>Wind</dt>
+            <dd>{{ weather.wind_speed }} mph</dd>
+
+            <dt>Updated</dt>
+            <dd>{{ weather.updated.strftime("%-I:%M %p") }}</dd>
+        </dl>
+
+        {% else %}
+
+        <p>No weather available.</p>
+
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>🌫 AQI</h2>
+
+        {% if aqi %}
+
+        <dl>
+            <dt>Source</dt>
+            <dd>{{ aqi_node.name }}</dd>
+
+            <dt>AQI</dt>
+            <dd>{{ aqi.value }}</dd>
+
+            <dt>Category</dt>
+            <dd>{{ aqi.indicator }} {{ aqi.category }}</dd>
+
+            <dt>Updated</dt>
+            <dd>{{ aqi.updated.strftime("%-I:%M %p") }}</dd>
+        </dl>
+
+        {% else %}
+
+        <p>No AQI available.</p>
+
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>🌐 Mesh</h2>
+
+       <div class="card">
+
+       <h2>👥 Team</h2>
+
+       {% if team %}
+
+       <table>
+
+       <tbody>
+
+       {% for node in team %}
+
+       <tr>
+
+       <td>
+
+       <strong>{{ node.name }}</strong><br>
+
+       {{ node.hardware_name }}
+
+       </td>
+
+       <td>
+
+       {{ node.last_heard_text }}
+
+       </td>
+
+       <td>
+
+       {{ node.battery_text }}
+
+       </td>
+
+       </tr>
+
+       {% endfor %}
+
+       </tbody>
+
+       </table>
+
+       {% else %}
+
+       <p>No team nodes.</p>
+
+       {% endif %}
+
+       </div>
+    </div>
+
+    {% if channel_share.available %}
+    <div class="card channel-share-card">
+        <h2>🔐 Join {{ channel_share.channel_name }}</h2>
+        <img
+            class="channel-share-qr"
+            src="{{ channel_share.qr_data_uri }}"
+            alt="QR code to add the {{ channel_share.channel_name }} channel">
+        <p>Scan to add {{ channel_share.channel_name }} as a secondary channel.</p>
+        <p class="channel-share-note">This QR grants access to the camp channel. Share it only with trusted event participants.</p>
+    </div>
+    {% endif %}
+
+    {% if outbound_message.channel %}
+    <div class="card channel-message-card">
+        <h2>📣 Send to {{ outbound_message.channel }}</h2>
+        <p class="settings-note">For deliberate test or operational messages. The radio accepts the message; recipient delivery is not guaranteed.</p>
+        <form id="channel-message-form" class="channel-message-form">
+            <label for="channel-message-input">Message</label>
+            <textarea id="channel-message-input" maxlength="{{ outbound_message.max_bytes }}" rows="3" required></textarea>
+            <button type="submit">Queue Message</button>
+        </form>
+        <p class="settings-status" id="channel-message-status" aria-live="polite">{{ outbound_message.message }}</p>
+    </div>
+    {% else %}
+    <div class="card channel-message-card">
+        <h2>📣 Channel messaging unavailable</h2>
+        <p class="settings-note">Set <code>meshtastic.bot_channel</code> to enable deliberate test or operational messages.</p>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+(() => {
+    const form = document.querySelector("#channel-message-form");
+    if (!form) return;
+
+    const input = document.querySelector("#channel-message-input");
+    const status = document.querySelector("#channel-message-status");
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        status.textContent = "Queueing…";
+
+        try {
+            const response = await fetch("/api/channel-message", {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message: input.value}),
+            });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.detail || "Unable to queue message.");
+            input.value = "";
+            status.textContent = payload.message;
+        } catch (error) {
+            status.textContent = error.message;
+        }
+    });
+})();
+</script>
+
+{% endblock %}
